@@ -2,12 +2,16 @@ import express from 'express'
 
 /*declarando o express como função*/
 const app = express()
+/*utilizando JSON*/
+app.use(express.json())
+
+const order = []
 
 /*criando pedido*/
 app.post('/order', (req, res) => {
 
+    order.push(req.body)
 
-console.log(req)
 
     res.send ('pedido criado com sucesso!')
 })
