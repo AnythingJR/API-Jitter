@@ -3,9 +3,13 @@ import express from 'express'
 /*declarando o express como função*/
 const app = express()
 
-/*chamando a consulta*/
-app.get('/pedido', (req,res) => {
-    res.send ('ok, consultou')
+/*criando pedido*/
+app.post('/order', (req, res) => {
+
+
+console.log(req)
+
+    res.send ('pedido criado com sucesso!')
 })
 
 app.listen(3000)
