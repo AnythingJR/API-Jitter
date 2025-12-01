@@ -19,6 +19,7 @@
   },
   "homepage": "https://github.com/AnythingJR/API-Jitter#readme",
   "dependencies": {
-    "express": "^5.2.0"
+    "express": "^5.2.0",
+    "mysql2": "^3.15.3"
   }
 }
