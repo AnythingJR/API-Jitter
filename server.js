@@ -175,7 +175,7 @@ app.get('/orders/:id', authMiddleware,async (req, res) => {
 
     try {
         const [order] = await pool.query(
-            'SELECT * FROM orders WHERE orderId = ?',
+            'SELECT * FROM order WHERE orderId = ?',
             [id]
         )
 
@@ -213,7 +213,7 @@ app.get('/orders/:id', authMiddleware,async (req, res) => {
 // Listando todos os pedidos
 app.get('/orders/list', async (req, res) => {
     try {
-        const [orders] = await pool.query('SELECT * FROM orders')
+        const [orders] = await pool.query('SELECT * FROM order')
 
         const result = []
 
@@ -260,7 +260,7 @@ app.put('/orders/:id', authMiddleware,async (req, res) => {
 
     try {
         const [exists] = await pool.query(
-            'SELECT * FROM orders WHERE orderId = ?',
+            'SELECT * FROM order WHERE orderId = ?',
             [id]
         )
 
@@ -268,7 +268,7 @@ app.put('/orders/:id', authMiddleware,async (req, res) => {
             return res.status(404).json({ error: 'Pedido não encontrado' })
 
         await pool.query(
-            'UPDATE orders SET value=?, creationDate=? WHERE orderId=?',
+            'UPDATE order SET value=?, creationDate=? WHERE orderId=?',
             [valorTotal, new Date(dataCriacao), id]
         )
 
@@ -310,14 +310,14 @@ app.delete('/orders/:id', authMiddleware,async (req, res) => {
 
     try {
         const [exists] = await pool.query(
-            'SELECT * FROM orders WHERE orderId = ?',
+            'SELECT * FROM order WHERE orderId = ?',
             [id]
         )
 
         if (exists.length === 0)
             return res.status(404).json({ error: 'Pedido não encontrado' })
 
-        await pool.query('DELETE FROM orders WHERE orderId=?', [id])
+        await pool.query('DELETE FROM order WHERE orderId=?', [id])
 
         return res.status(200).json({ message: 'Pedido removido com sucesso' })
 
