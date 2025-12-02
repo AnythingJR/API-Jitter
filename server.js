@@ -2,6 +2,17 @@ import express from 'express'
 import swaggerUi from 'swagger-ui-express'
 import swaggerJSDoc from 'swagger-jsdoc'
 import pool from './database.js'
+import jwt from 'jsonwebtoken'
+import bcrypt from 'bcryptjs'
+
+const users = [
+  {
+    id: 1,
+    username: 'admin',
+    password: bcrypt.hashSync('123456', 10)
+  }
+]
+
 
 /*declarando o express como função*/
 const app = express()
@@ -75,7 +86,7 @@ app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerSpec))
  *       400:
  *         description: Dados inválidos
  */
-app.post('/orders', async (req, res) => {
+app.post('/orders',authMiddleware ,async (req, res) => {
     const connection = await pool.getConnection()
 
     try {
@@ -159,7 +170,7 @@ app.listen(PORT, () => {
  *       404:
  *         description: Pedido não encontrado
  */
-app.get('/orders/:id', async (req, res) => {
+app.get('/orders/:id', authMiddleware,async (req, res) => {
     const { id } = req.params
 
     try {
@@ -243,7 +254,7 @@ app.get('/orders/list', async (req, res) => {
  *         description: Pedido atualizado
  */
 // Atualizando um pedido pelo ID
-app.put('/orders/:id', async (req, res) => {
+app.put('/orders/:id', authMiddleware,async (req, res) => {
     const { id } = req.params
     const { numeroPedido, valorTotal, dataCriacao, items } = req.body
 
@@ -294,7 +305,7 @@ app.put('/orders/:id', async (req, res) => {
  *         description: Pedido removido
  */
 // Deletando um pedido pelo ID
-app.delete('/orders/:id', async (req, res) => {
+app.delete('/orders/:id', authMiddleware,async (req, res) => {
     const { id } = req.params
 
     try {
@@ -316,3 +327,40 @@ app.delete('/orders/:id', async (req, res) => {
     }
 })
 
+//Middleware de autenticação
+function authMiddleware(req, res, next) {
+    const authHeader = req.headers.authorization
+
+    if (!authHeader) {
+        return res.status(401).json({ error: 'Token não fornecido' })
+    }
+
+    const token = authHeader.split(' ')[1]
+
+    try {
+        const decoded = jwt.verify(token, 'SEGREDO_SUPER_SECRETO')
+        req.user = decoded
+        next()
+    } catch {
+        return res.status(401).json({ error: 'Token inválido' })
+    }
+}
+
+//Login JWT
+app.post('/login', (req, res) => {
+    const { username, password } = req.body
+
+    const user = users.find(u => u.username === username)
+
+    if (!user || !bcrypt.compareSync(password, user.password)) {
+        return res.status(401).json({ error: 'Usuário ou senha inválidos' })
+    }
+
+    const token = jwt.sign(
+        { id: user.id, username: user.username },
+        'SEGREDO_SUPER_SECRETO',
+        { expiresIn: '1h' }
+    )
+
+    return res.status(200).json({ token })
+})
