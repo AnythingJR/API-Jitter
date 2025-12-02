@@ -22,7 +22,7 @@ app.use(express.json())
 const swaggerDefinition = {
     openapi: '3.0.0',
     info: {
-        title: 'Orders API',
+           title: 'Order API',
         version: '1.0.0',
         description: 'API para gerenciamento de pedidos'
     },
@@ -48,7 +48,7 @@ app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerSpec))
  *     summary: Criar pedido
  *     description: Cria um novo pedido com seus itens.
  *     tags:
- *       - Orders
+ *       - Order
  *     requestBody:
  *       required: true
  *       content:
@@ -86,7 +86,7 @@ app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerSpec))
  *       400:
  *         description: Dados inválidos
  */
-app.post('/orders',authMiddleware ,async (req, res) => {
+app.post('/order',authMiddleware ,async (req, res) => {
     const connection = await pool.getConnection()
 
     try {
@@ -152,55 +152,6 @@ app.listen(PORT, () => {
 
 /**
  * @swagger
- * /order/{id}:
- *   get:
- *     summary: Buscar pedido por ID
- *     tags:
- *       - Orders
- *     parameters:
- *       - in: path
- *         name: id
- *         required: true
- *         schema:
- *           type: string
- *           example: v10089016vdb
- *     responses:
- *       200:
- *         description: Pedido encontrado
- *       404:
- *         description: Pedido não encontrado
- */
-app.get('/orders/:id', authMiddleware,async (req, res) => {
-    const { id } = req.params
-
-    try {
-        const [order] = await pool.query(
-            'SELECT * FROM order WHERE orderId = ?',
-            [id]
-        )
-
-        if (order.length === 0) {
-            return res.status(404).json({ error: 'Pedido não encontrado' })
-        }
-
-        const [items] = await pool.query(
-            'SELECT productId, quantity, price FROM items WHERE orderId = ?',
-            [id]
-        )
-
-        return res.status(200).json({
-            ...order[0],
-            items
-        })
-
-    } catch (error) {
-        console.error(error)
-        return res.status(500).json({ error: 'Erro ao buscar pedido' })
-    }
-})
-
-/**
- * @swagger
  * /order/list:
  *   get:
  *     summary: Listar todos os pedidos
@@ -211,9 +162,9 @@ app.get('/orders/:id', authMiddleware,async (req, res) => {
  *         description: Lista de pedidos
  */
 // Listando todos os pedidos
-app.get('/orders/list', async (req, res) => {
+app.get('/order/list', async (req, res) => {
     try {
-        const [orders] = await pool.query('SELECT * FROM order')
+        const [orders] = await pool.query('SELECT * FROM `order`')
 
         const result = []
 
@@ -237,6 +188,55 @@ app.get('/orders/list', async (req, res) => {
     }
 })
 
+/**
+ * @swagger
+ * /order/{id}:
+ *   get:
+ *     summary: Buscar pedido por ID
+ *     tags:
+ *       - Orders
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: string
+ *           example: v10089016vdb
+ *     responses:
+ *       200:
+ *         description: Pedido encontrado
+ *       404:
+ *         description: Pedido não encontrado
+ */
+app.get('/order/:id', authMiddleware,async (req, res) => {
+    const { id } = req.params
+
+    try {
+        const [order] = await pool.query(
+            'SELECT * FROM `order` WHERE orderId = ?',
+            [id]
+        )
+
+        if (order.length === 0) {
+            return res.status(404).json({ error: 'Pedido não encontrado' })
+        }
+
+        const [items] = await pool.query(
+            'SELECT productId, quantity, price FROM items WHERE orderId = ?',
+            [id]
+        )
+
+        return res.status(200).json({
+            ...order[0],
+            items
+        })
+
+    } catch (error) {
+        console.error(error)
+        return res.status(500).json({ error: 'Erro ao buscar pedido' })
+    }
+})
+
 
 /**
  * @swagger
@@ -254,13 +254,13 @@ app.get('/orders/list', async (req, res) => {
  *         description: Pedido atualizado
  */
 // Atualizando um pedido pelo ID
-app.put('/orders/:id', authMiddleware,async (req, res) => {
+app.put('/order/:id', authMiddleware,async (req, res) => {
     const { id } = req.params
     const { numeroPedido, valorTotal, dataCriacao, items } = req.body
 
     try {
         const [exists] = await pool.query(
-            'SELECT * FROM order WHERE orderId = ?',
+            'SELECT * FROM `order` WHERE orderId = ?',
             [id]
         )
 
@@ -268,7 +268,7 @@ app.put('/orders/:id', authMiddleware,async (req, res) => {
             return res.status(404).json({ error: 'Pedido não encontrado' })
 
         await pool.query(
-            'UPDATE order SET value=?, creationDate=? WHERE orderId=?',
+            'UPDATE `order` SET value=?, creationDate=? WHERE orderId=?',
             [valorTotal, new Date(dataCriacao), id]
         )
 
@@ -305,19 +305,19 @@ app.put('/orders/:id', authMiddleware,async (req, res) => {
  *         description: Pedido removido
  */
 // Deletando um pedido pelo ID
-app.delete('/orders/:id', authMiddleware,async (req, res) => {
+app.delete('/order/:id', authMiddleware,async (req, res) => {
     const { id } = req.params
 
     try {
         const [exists] = await pool.query(
-            'SELECT * FROM order WHERE orderId = ?',
+            'SELECT * FROM `order` WHERE orderId = ?',
             [id]
         )
 
         if (exists.length === 0)
             return res.status(404).json({ error: 'Pedido não encontrado' })
 
-        await pool.query('DELETE FROM order WHERE orderId=?', [id])
+        await pool.query('DELETE FROM `order` WHERE orderId=?', [id])
 
         return res.status(200).json({ message: 'Pedido removido com sucesso' })
 
